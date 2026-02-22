@@ -25,7 +25,8 @@ function PublicRoute({ isAuthed, children }) {
 }
 
 export default function App() {
-  const { user, loading } = useAuth()
+  const auth = useAuth()
+  const { user, loading } = auth
 
   if (loading) {
     return (
@@ -44,7 +45,7 @@ export default function App() {
               path="/"
               element={
                 <ProtectedRoute isAuthed={Boolean(user)}>
-                  <Dashboard user={user} />
+                  <Dashboard auth={auth} />
                 </ProtectedRoute>
               }
             />
@@ -52,7 +53,7 @@ export default function App() {
               path="/auth"
               element={
                 <PublicRoute isAuthed={Boolean(user)}>
-                  <AuthPage />
+                  <AuthPage auth={auth} />
                 </PublicRoute>
               }
             />

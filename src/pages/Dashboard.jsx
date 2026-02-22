@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChefHat, LogOut, WifiOff } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 import { useProfile } from '../hooks/useProfile'
 import { useSavedRecipesStore } from '../hooks/useSavedRecipesStore'
 import { recommendRecipes } from '../utils/recommendRecipes'
@@ -17,12 +16,13 @@ const mealTypes = [
   { value: 'healthy', label: 'Sihat' },
 ]
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ auth }) {
+  const { user, isGuest, logout } = auth
   const [selectedIngredients, setSelectedIngredients] = useState([])
   const [mealType, setMealType] = useState('all')
   const [tab, setTab] = useState('suggested')
 
-  const { data: profile, isLoading: profileLoading, isError: profileError } = useProfile(user?.id)
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useProfile(isGuest ? null : user?.id)
   const { savedRecipes, addRecipe, removeRecipe, isSaved } = useSavedRecipesStore()
 
   const recommendationsQuery = useQuery({
@@ -47,15 +47,11 @@ export default function Dashboard({ user }) {
     addRecipe(recipe)
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-  }
-
-  if (profileLoading) {
+  if (!isGuest && profileLoading) {
     return <LoadingSpinner label="Memuatkan profil..." />
   }
 
-  if (profileError) {
+  if (!isGuest && profileError) {
     return (
       <main className="mx-auto w-full max-w-xl px-4 py-6">
         <EmptyState
@@ -66,19 +62,19 @@ export default function Dashboard({ user }) {
     )
   }
 
+  const displayName = isGuest ? 'Guest Chef' : profile?.display_name || profile?.username || 'Chef'
+
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-5">
       <header className="y2k-shell p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
             <h1 className="font-impact text-3xl uppercase text-magenta">Dapur AI</h1>
-            <p className="mt-1 font-ios text-sm text-black/80">
-              Hai {profile?.display_name || profile?.username || 'Chef'} - jom pilih bahan.
-            </p>
+            <p className="mt-1 font-ios text-sm text-black/80">Hai {displayName} - jom pilih bahan.</p>
           </div>
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={logout}
             className="rounded-xl border-2 border-iosRed bg-iosRed px-3 py-2 text-white"
           >
             <LogOut size={15} />

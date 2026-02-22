@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { z } from 'zod'
-import { LogIn, UserPlus } from 'lucide-react'
+import { LogIn, UserPlus, WifiOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { authBaseSchema, signupSchema } from '../utils/authSchemas'
 
 const loginSchema = authBaseSchema
 
-export default function AuthForm() {
+export default function AuthForm({ onContinueAsGuest }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,16 +38,10 @@ export default function AuthForm() {
 
     try {
       if (mode === 'login') {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
         if (signInError) throw signInError
       } else {
-        const { error: signupError } = await supabase.auth.signUp({
-          email,
-          password,
-        })
+        const { error: signupError } = await supabase.auth.signUp({ email, password })
         if (signupError) throw signupError
         setSuccess('Akaun berjaya dibuat. Sila semak emel jika verifikasi diaktifkan.')
       }
@@ -112,6 +106,15 @@ export default function AuthForm() {
           className="mt-3 w-full rounded-2xl border-2 border-iosBlue bg-white px-4 py-2 font-ios text-sm font-semibold text-iosBlue"
         >
           {mode === 'login' ? 'Belum ada akaun? Sign up' : 'Sudah ada akaun? Log masuk'}
+        </button>
+
+        <button
+          type="button"
+          onClick={onContinueAsGuest}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-iosOrange bg-iosOrange px-4 py-2 font-ios text-sm font-semibold text-white"
+        >
+          <WifiOff size={15} />
+          Teruskan Offline (Guest)
         </button>
       </section>
     </main>
